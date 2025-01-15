@@ -1,0 +1,56 @@
+import numpy as np
+
+# 盤面の評価値（6×6）
+SCORE_MATRIX = np.array([
+    [100, -10,  10,  10, -10, 100],
+    [-10, -20,   1,   1, -20, -10],
+    [ 10,   1,   5,   5,   1,  10],
+    [ 10,   1,   5,   5,   1,  10],
+    [-10, -20,   1,   1, -20, -10],
+    [100, -10,  10,  10, -10, 100]
+])
+
+def get_valid_moves(board, color):
+    """現在の盤面で指定した色が打てる有効な手を取得する関数"""
+    valid_moves = {}
+    for x in range(6):
+        for y in range(6):
+            if board[x][y] != 0:
+                continue
+            tiles_to_flip = []
+            for dx, dy in [(-1, -1), (-1, 0), (-1, 1),
+                           (0, -1),         (0, 1),
+                           (1, -1), (1, 0), (1, 1)]:
+                tiles_to_flip += check_direction(board, x, y, dx, dy, color)
+            if tiles_to_flip:
+                valid_moves[(x, y)] = tiles_to_flip
+    return valid_moves
+
+def check_direction(board, x, y, dx, dy, color):
+    """指定された方向に石を挟めるか確認する関数"""
+    tiles_to_flip = []
+    i, j = x + dx, y + dy
+    while 0 <= i < 6 and 0 <= j < 6 and board[i][j] == -color:
+        tiles_to_flip.append((i, j))
+        i += dx
+        j += dy
+    if 0 <= i < 6 and 0 <= j < 6 and board[i][j] == color:
+        return tiles_to_flip
+    return []
+
+def niwatoriAI_logic(board, color):
+    """
+    盤面の評価値に基づいて最適な手を選ぶAIのロジック。
+    """
+    valid_moves = get_valid_moves(board, color)
+    if not valid_moves:
+        return None
+    best_move = None
+    max_score = -float('inf')
+    for move, tiles_to_flip in valid_moves.items():
+        x, y = move
+        score = SCORE_MATRIX[x][y]  # 評価値を使用
+        if score > max_score:
+            max_score = score
+            best_move = (move, tiles_to_flip)
+    return best_move
